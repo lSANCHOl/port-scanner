@@ -11,12 +11,26 @@ import subprocess
 from queue import Queue
 from datetime import datetime
 
+# Colours
+BANNER = '\033[1;91m'
+HEADER = '\033[95m'
+OKBLUE = '\033[94m'
+OKCYAN = '\033[96m'
+OKGREEN = '\033[92m'
+WARNING = '\033[93m'
+FAIL = '\033[91m'
+ENDC = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
+
+
 # Banner
 def banner():
-    print('\n'+'-'*50)
-    print('''╔═╗╔═╗╦═╗╔╦╗  ┌─┐┌─┐┌─┐┌┐┌┌┐┌┌─┐┬─┐
-╠═╝║ ║╠╦╝ ║   └─┐│  ├─┤││││││├┤ ├┬┘
-╩  ╚═╝╩╚═ ╩   └─┘└─┘┴ ┴┘└┘┘└┘└─┘┴└─By Sancho''')
+       print('\n'+'-'*50)
+       print(f'''{BANNER}{BOLD}░█▀█░█▀█░█▀▄░▀█▀░░░█▀▀░█▀▀░█▀█░█▀█░█▀█░█▀▀░█▀▄
+░█▀▀░█░█░█▀▄░░█░░░░▀▀█░█░░░█▀█░█░█░█░█░█▀▀░█▀▄
+░▀░░░▀▀▀░▀░▀░░▀░░░░▀▀▀░▀▀▀░▀░▀░▀░▀░▀░▀░▀▀▀░▀░▀ By Sancho{ENDC}''')
+
 
 # Main Function
 def main(ip):
@@ -30,16 +44,16 @@ def main(ip):
     try:
         hostname = socket.gethostbyaddr(target)
     except:
-        hostname = ('','')
+        hostname = (f'{FAIL}unkown','')
     try:
         t_ip = socket.gethostbyname(target) 
     except (UnboundLocalError, socket.gaierror):
-        print('\n[-]Invalid format. Please use a correct IP or web address[-]\n')
+        print(f'{FAIL}{BOLD}\n[-]Invalid format. Please use a correct IP or web address[-]\n{ENDC}')
         sys.exit()
   
     print("-" * 50)
-    print(f'Scanning target {t_ip} ({hostname[0]})')
-    print(f'Time started: {str(datetime.now())}')
+    print(f'Scanning target: {WARNING}{t_ip}{ENDC} ({OKCYAN}{hostname[0]}{ENDC})')
+    print(f'Time started: {BOLD}{str(datetime.now())}{ENDC}')
     print('-' * 50)
     t1 = datetime.now() 
     def portscan(port):
@@ -49,7 +63,7 @@ def main(ip):
        try:
           conx = s.connect((t_ip, port))
           with print_lock:
-             print(f'[+] Port {port} ({socket.getservbyport(port)})') 
+             print(f'{OKGREEN}[+]{ENDC} Port {OKCYAN}{BOLD}{port}{ENDC} ({socket.getservbyport(port)})') 
              discovered_ports.append(str(port))
           conx.close()
 
@@ -76,11 +90,11 @@ def main(ip):
 
     t2 = datetime.now()
     total = t2 - t1
-    print(f'Port scan completed in {str(total)}')
+    print(f'Port scan completed in {BOLD}{str(total)}{ENDC}')
     print('-' * 50) 
-    print('*' * 50)
+    print(f'{WARNING}*' * 50)
     print('nmap -p{ports} -A -T4 -vv -Pn -oN {ip} {ip}'.format(ports=','.join(discovered_ports), ip=target))
-    print('*' * 50)
+    print(f'*' * 50,ENDC)
     outfile = 'nmap -p{ports} -A -vv -Pn -T4 -oN {ip} {ip}'.format(ports=','.join(discovered_ports), ip=target)
     t3 = datetime.now()
     total1 = t3 - t1
@@ -137,9 +151,7 @@ parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t print ban
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    if args.quiet:
-        one = 1
-    else:
+    if not args.quiet:
         banner()
  
     if args.list and args.nmap:
