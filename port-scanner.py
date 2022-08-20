@@ -26,8 +26,8 @@ UNDERLINE = '\033[4m'
 
 # Banner
 def banner():
-       print('\n'+'-'*50)
-       print(f'''{BANNER}{BOLD}░█▀█░█▀█░█▀▄░▀█▀░░░█▀▀░█▀▀░█▀█░█▀█░█▀█░█▀▀░█▀▄
+    print('\n'+'-'*50)
+    print(f'''{BANNER}{BOLD}░█▀█░█▀█░█▀▄░▀█▀░░░█▀▀░█▀▀░█▀█░█▀█░█▀█░█▀▀░█▀▄
 ░█▀▀░█░█░█▀▄░░█░░░░▀▀█░█░░░█▀█░█░█░█░█░█▀▀░█▀▄
 ░▀░░░▀▀▀░▀░▀░░▀░░░░▀▀▀░▀▀▀░▀░▀░▀░▀░▀░▀░▀▀▀░▀░▀ By Sancho{ENDC}''')
 
@@ -40,58 +40,58 @@ def main(ip):
     print_lock = threading.Lock()
     discovered_ports = []
     time.sleep(3)
-    target = ip 
+    target = ip
     try:
         hostname = socket.gethostbyaddr(target)
     except:
         hostname = (f'{FAIL}unkown','')
     try:
-        t_ip = socket.gethostbyname(target) 
+        t_ip = socket.gethostbyname(target)
     except (UnboundLocalError, socket.gaierror):
         print(f'{FAIL}{BOLD}\n[-]Invalid format. Please use a correct IP or web address[-]\n{ENDC}')
         sys.exit()
-  
+
     print("-" * 50)
     print(f'Scanning target: {WARNING}{t_ip}{ENDC} ({OKCYAN}{hostname[0]}{ENDC})')
     print(f'Time started: {BOLD}{str(datetime.now())}{ENDC}')
     print('-' * 50)
-    t1 = datetime.now() 
+    t1 = datetime.now()
     def portscan(port):
 
-       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-       
-       try:
-          conx = s.connect((t_ip, port))
-          with print_lock:
-             print(f'{OKGREEN}[+]{ENDC} Port {OKCYAN}{BOLD}{port}{ENDC} ({socket.getservbyport(port)})') 
-             discovered_ports.append(str(port))
-          conx.close()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-       except (ConnectionRefusedError, AttributeError, OSError):
-          pass
+        try:
+            conx = s.connect((t_ip, port))
+            with print_lock:
+                print(f'{OKGREEN}[+]{ENDC} Port {OKCYAN}{BOLD}tcp/{port}{ENDC} ({socket.getservbyport(port)})')
+                discovered_ports.append(str(port))
+            conx.close()
+
+        except (ConnectionRefusedError, AttributeError, OSError):
+            pass
 
     def threader():
         while True:
             worker = q.get()
             portscan(worker)
             q.task_done()
-      
+
     q = Queue()
-     
+
     for x in range(200):
-       t = threading.Thread(target = threader)
-       t.daemon = True
-       t.start()
+        t = threading.Thread(target = threader)
+        t.daemon = True
+        t.start()
 
     for worker in range(1, 65536):
-       q.put(worker)
+        q.put(worker)
 
     q.join()
 
     t2 = datetime.now()
     total = t2 - t1
     print(f'Port scan completed in {BOLD}{str(total)}{ENDC}')
-    print('-' * 50) 
+    print('-' * 50)
     print(f'{WARNING}*' * 50)
     print('nmap -p{ports} -A -T4 -vv -Pn -oN {ip} {ip}'.format(ports=','.join(discovered_ports), ip=target))
     print(f'*' * 50,ENDC)
@@ -101,7 +101,6 @@ def main(ip):
 
 
 # Autmomatic NMAP scan
-
 def automate(choice,exit):
     while True:
         if choice == '0':
@@ -140,7 +139,6 @@ def automate(choice,exit):
         else:
             print('Please make a valid selection')
             automate('0','')
-    
 
 parser = argparse.ArgumentParser(description='port scan single or multiple IP addresses')
 parser.add_argument('-i', '--IP', metavar='', help='single IP address to use')
@@ -151,17 +149,21 @@ parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t print ban
 args = parser.parse_args()
 
 if __name__ == '__main__':
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     if not args.quiet:
         banner()
- 
+
     if args.list and args.nmap:
         try:
             for i in open(args.list):
                 main(i.rstrip())
-                automate('1','no') 
+                automate('1','no')
         except KeyboardInterrupt:
             print('\nGoodbye!')
-            quite()
+            quit()
 
     elif args.list:
         try:
@@ -170,7 +172,7 @@ if __name__ == '__main__':
             automate('0','')
         except KeyboardInterrupt:
             print('\nGoodbye!')
-            quite()
+            quit()
 
     elif args.IP and args.nmap:
         try:
@@ -179,12 +181,11 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             print('\nGoodbye!')
             quit()
-    
+
     elif args.IP:
         try:
             main(args.IP)
-            automate('0','')  
+            automate('0','')
         except KeyboardInterrupt:
             print('\nGoodbye!')
             quit()
-    
